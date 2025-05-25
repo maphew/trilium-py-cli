@@ -25,30 +25,41 @@ def create_or_update_env(server: Optional[str] = None, token: Optional[str] = No
     # Read existing config if it exists
     config: Dict[str, str] = {}
     if ENV_FILE.exists():
-        with open(ENV_FILE, 'r') as f:
-            for line in f:
-                line = line.strip()
-                if '=' in line and not line.startswith('#'):
-                    key, value = line.split('=', 1)
-                    config[key.strip()] = value.strip('"\'\n')
+        try:
+            with open(ENV_FILE, 'r') as f:
+                for line in f:
+                    line = line.strip()
+                    if '=' in line and not line.startswith('#'):
+                        key, value = line.split('=', 1)
+                        config[key.strip()] = value.strip('"\'\n')
+        except Exception as e:
+            click.echo(f"Warning: Could not read existing .env file: {e}", err=True)
     
     # Update with new values if provided
     if server is not None:
-        config["TRILIUM_SERVER"] = server
+        config["TRILIUM_SERVER"] = server.strip()
     if token is not None:
-        config["TRILIUM_TOKEN"] = token
+        config["TRILIUM_TOKEN"] = token.strip()
+    
+    # Ensure we have at least server and token
+    if not config.get("TRILIUM_SERVER") or not config.get("TRILIUM_TOKEN"):
+        raise click.UsageError("Both server URL and token are required")
     
     # Create parent directories if they don't exist
     ENV_FILE.parent.mkdir(parents=True, exist_ok=True)
     
     # Write to file
-    with open(ENV_FILE, 'w') as f:
-        for key, value in config.items():
-            f.write(f"{key}={value}\n")
-    
-    # Set permissions to be user-only
-    ENV_FILE.chmod(0o600)
-    return ENV_FILE
+    try:
+        with open(ENV_FILE, 'w') as f:
+            for key, value in config.items():
+                if key and value:  # Skip empty keys or values
+                    f.write(f"{key}={value}\n")
+        
+        # Set permissions to be user-only
+        ENV_FILE.chmod(0o600)
+        return ENV_FILE
+    except Exception as e:
+        raise click.UsageError(f"Failed to write to {ENV_FILE}: {e}")
 
 @click.group()
 def config():

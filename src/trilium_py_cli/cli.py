@@ -32,11 +32,15 @@ def main(ctx: click.Context, env_file: Optional[Path] = None, debug: bool = Fals
     ctx.ensure_object(dict)
     ctx.obj["debug"] = debug
     
+    # Skip configuration check for config commands
+    if ctx.invoked_subcommand == "config":
+        return
+        
     # Load environment from specified file if provided
     if env_file:
         if debug:
             click.echo(f"[DEBUG] Loading environment from {env_file}", err=True)
-        load_environment(env_file)
+        load_environment(env_file, debug=debug)
     
     # Initialize context object with server and token
     try:
