@@ -108,15 +108,44 @@ def ensure_config(server: Optional[str] = None, token: Optional[str] = None,
     # Final validation
     if not server or not token:
         debug_print("Configuration not found in any source")
-        raise click.UsageError(
-            "Missing configuration. Please use one of these methods:\n"
-            "  1. Command line: --server URL --token TOKEN\n"
-            "  2. Environment variables: TRILIUM_SERVER and TRILIUM_TOKEN\n"
-            "  3. .env file in the current directory\n\n"
-            "Example .env file:\n"
-            "  TRILIUM_SERVER=https://your-trillium-instance.com\n"
-            "  TRILIUM_TOKEN=your-api-token-here"
-        )
+        
+        # Build helpful error message
+        msg = [
+            "Missing configuration. Please use one of these methods:",
+            "  1. Command line: tpy --server URL --token TOKEN [command]",
+            "  2. Environment variables: TRILIUM_SERVER and TRILIUM_TOKEN",
+            "  3. .env file in the current directory"
+        ]
+        
+        # Check if we're in the right directory
+        cwd = Path.cwd()
+        if str(cwd) != str(Path.home()):
+            msg.append(f"\nCurrent directory: {cwd}")
+        
+        # Check for common issues
+        issues = []
+        if server and not token:
+            issues.append("Server URL is set but token is missing")
+        elif token and not server:
+            issues.append("Token is set but server URL is missing")
+            
+        if issues:
+            msg.append("\nIssues found:")
+            for issue in issues:
+                msg.append(f"  • {issue}")
+        
+        # Add example
+        msg.extend([
+            "",
+            "Example .env file:",
+            "  TRILIUM_SERVER=https://your-trillium-instance.com",
+            "  TRILIUM_TOKEN=your-api-token-here",
+            "",
+            "To configure, run:",
+            "  tpy config set --server URL --token TOKEN"
+        ])
+        
+        raise click.UsageError("\n".join(msg))
     
     # Basic URL validation
     if not server.startswith(('http://', 'https://')):

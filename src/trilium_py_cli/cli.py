@@ -14,7 +14,7 @@ from .options import common_options, env_file_option
 
 @click.group()
 @click.version_option(version=__version__)
-@env_file_option()
+@env_file_option()  # This is a decorator factory, so we call it
 @click.option(
     "--debug", is_flag=True, help="Enable debug output"
 )
