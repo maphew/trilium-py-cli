@@ -1,9 +1,9 @@
 # tpy-cli
 
+Trilium-py CLI - Command line interface for [trilium-py][trilium-py], providing easy access to Trilium Notes from your terminal.
+
 [![PyPI version](https://img.shields.io/pypi/v/tpy-cli.svg)](https://pypi.org/project/tpy-cli/)
 [![License](https://img.shields.io/pypi/l/tpy-cli.svg)](https://github.com/maphew/tpy-cli/blob/main/LICENSE)
-
-A command-line interface for [trilium-py](https://github.com/Nriver/trilium-py), providing easy access to Trilium Notes from your terminal.
 
 ## Installation
 
@@ -56,3 +56,6 @@ tpy config --help
 ## License
 
 MIT
+
+
+[trilium-py]: https://github.com/Nriver/trilium-py
