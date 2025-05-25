@@ -1,23 +1,53 @@
 """Note-related commands for tpy-cli."""
 
 import click
-from typing import Optional
+from typing import Optional, Any
+from trilium_py.client import ETAPI
+
+from ..options import common_options
+from ..utils import ensure_config
 
 @click.group()
-def notes():
+def notes() -> None:
     """Manage Trilium notes."""
     pass
 
-@notes.command()
-@click.argument("query")
-@click.option("--server", envvar="TRILIUM_SERVER", help="Trilium server URL")
-@click.option("--token", envvar="TRILIUM_TOKEN", help="ETAPI token")
-def search(query: str, server: str, token: str):
-    """Search for notes matching QUERY."""
-    from trilium_py.client import ETAPI
+def get_etapi(ctx: click.Context) -> ETAPI:
+    """Get ETAPI client from context or environment.
+    
+    Args:
+        ctx: Click context object
+        
+    Returns:
+        ETAPI: Initialized ETAPI client
+        
+    Raises:
+        click.UsageError: If configuration is missing
+    """
+    debug = ctx.obj.get("debug", False)
+    server = ctx.obj.get("server")
+    token = ctx.obj.get("token")
+    
+    if debug:
+        click.echo(f"[DEBUG] Creating ETAPI client with server: {server[:10]}...", err=True)
     
     try:
-        ea = ETAPI(server, token)
+        return ETAPI(server, token)
+    except Exception as e:
+        if debug:
+            click.echo(f"[DEBUG] Failed to create ETAPI client: {e}", err=True)
+        raise click.UsageError(
+            "Failed to connect to Trilium. Please check your server URL and token."
+        )
+
+@notes.command()
+@click.argument("query")
+@common_options
+@click.pass_context
+def search(ctx: click.Context, query: str, **kwargs: Any) -> None:
+    """Search for notes matching QUERY."""
+    try:
+        ea = get_etapi(ctx)
         results = ea.search_note(query)
         for note in results:
             click.echo(f"{note['noteId']} - {note['title']}")
@@ -30,20 +60,27 @@ def search(query: str, server: str, token: str):
 @click.option("--parent-id", default="root", help="Parent note ID")
 @click.option("--type", "note_type", default="text", help="Note type (text, code, etc.)")
 @click.option("--mime", default="text/html", help="MIME type")
-@click.option("--server", envvar="TRILIUM_SERVER", help="Trilium server URL")
-@click.option("--token", envvar="TRILIUM_TOKEN", help="ETAPI token")
-def create(title: str, parent_id: str, note_type: str, mime: str, server: str, token: str):
+@click.option("--content", "", help="Note content")
+@common_options
+@click.pass_context
+def create(
+    ctx: click.Context,
+    title: str,
+    parent_id: str,
+    note_type: str,
+    mime: str,
+    content: str,
+    **kwargs: Any
+) -> None:
     """Create a new note."""
-    from trilium_py.client import ETAPI
-    
     try:
-        ea = ETAPI(server, token)
+        ea = get_etapi(ctx)
         note = ea.create_note(
             parentNoteId=parent_id,
             title=title,
             type=note_type,
             mime=mime,
-            content=""
+            content=content or ""
         )
         click.echo(f"Created note: {note['noteId']}")
     except Exception as e:
