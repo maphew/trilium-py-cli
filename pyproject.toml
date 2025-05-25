@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tpy-cli"
+description = "Command line interface for trilium-py"
+version = "0.1.0"
+requires-python = ">=3.8"
+dependencies = [
+    "trilium-py>=0.1.0",
+    "click>=8.0.0",  # For building the CLI
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "black>=22.0.0",
+    "isort>=5.0.0",
+    "mypy>=0.900",
+]
+
+[project.scripts]
+tpy = "trilium_py_cli.cli:main"
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
+include = '\.pyi?$'
