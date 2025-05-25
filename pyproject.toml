@@ -10,7 +10,9 @@ version = "0.1.0"
 requires-python = ">=3.8"
 dependencies = [
     "trilium-py>=0.1.0",
-    "click>=8.0.0",  # For building the CLI
+    "click>=8.0.0", # For building the CLI
+    "rich>=14.0.0",
+    "python-dotenv>=1.0.1",
 ]
 
 [project.optional-dependencies]
