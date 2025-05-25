@@ -1,2 +1,11 @@
-*.egg-info/*
-*.egg-info/
+__pycache__/*                                                                                                                        │
+__pycache__/                                                                                                                         │
+*.py                                                                                                                                 │
+build/*                                                                                                                              │
+build/                                                                                                                               │
+dist/*                                                                                                                               │
+dist/                                                                                                                                │
+wheels/*                                                                                                                             │
+*.egg-info                                                                                                                           │
+**/.venv                                                                                                                             │
+**/.venv/* 
