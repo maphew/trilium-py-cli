@@ -9,7 +9,9 @@ from . import __version__
 from .utils import load_environment, ensure_config
 from .options import common_options, env_file_option
 
-# Import commands here to avoid circular imports
+# Import command groups here to avoid circular imports
+from .commands import info as info_commands
+
 # Commands are registered using the @main.command() decorator
 
 @click.group()
@@ -44,19 +46,23 @@ def main(ctx: click.Context, env_file: Optional[Path] = None, debug: bool = Fals
     
     # Initialize context object with server and token
     try:
-        ctx.obj["server"], ctx.obj["token"] = ensure_config(debug=debug)
+        # Only try to load config if this is not the info command
+        if ctx.invoked_subcommand != "info":
+            ctx.obj["server"], ctx.obj["token"] = ensure_config(debug=debug)
     except click.UsageError as e:
         if debug:
             click.echo(f"[DEBUG] Configuration error: {e}", err=True)
-        raise
+        # Allow info commands to run even without config
+        if ctx.invoked_subcommand != "info":
+            raise
 
-# Import and register commands after main is defined
-# This avoids circular imports
-from .commands import notes, config  # noqa: E402
+# Import and register commands after main is defined to avoid circular imports
+from .commands import notes, config
 
 # Register command groups
-main.add_command(notes.notes)
-main.add_command(config.config)
+main.add_command(notes.notes, name="notes")
+main.add_command(config.config, name="config")
+main.add_command(info_commands.info, name="info")
 
 if __name__ == "__main__":
     main()

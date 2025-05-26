@@ -2,24 +2,89 @@
 
 Trilium-py CLI - Command line interface for [trilium-py][trilium-py], providing easy access to Trilium Notes from your terminal.
 
-[![PyPI version](https://img.shields.io/pypi/v/tpy-cli.svg)](https://pypi.org/project/tpy-cli/)
-[![License](https://img.shields.io/pypi/l/tpy-cli.svg)](https://github.com/maphew/tpy-cli/blob/main/LICENSE)
+Status: alpha
 
 ## Installation
 
 ```bash
-uv pip install tpy-cli
+uv tool install git+https://github.com/maphew/trilium-py-cli
 ```
 
-## Configuration
+This will make the `tpy` command available in your shell. 
 
-Set your default Trilium server and token:
-
-```bash
-tpy config set --server http://localhost:8080 --token YOUR_ETAPI_TOKEN
-```
+(On Windows or systems where git is not in PATH, download the repo archive, unpack it, and run `uv tool install .` from the root directory of the repo.)
 
 ## Usage
+
+```
+❯ tpy
+Usage: tpy [OPTIONS] COMMAND [ARGS]...
+
+  Trilium-py CLI - Command line interface for trilium-py.
+
+Options:
+  --version        Show the version and exit.
+  --env-file FILE  Path to .env file to load
+  --debug          Enable debug output
+  --help           Show this message and exit.
+
+Commands:
+  config  Manage tpy-cli configuration.
+  info    Display information about the Trilium server.
+  notes   Manage Trilium notes.
+```
+
+Get and save token to .env file:
+
+```
+tpy config get-token
+```
+
+```
+❯ tpy config get-token --server https://www.example.org
+Enter your Trilium password: 
+Connecting to Trilium server at https://www.example.org...
+╭─────────────────── Server Information ───────────────────╮
+│ Trilium: 0.93.0                                          │
+│ Build Date: 2025-04-17T19:25:28Z                         │
+│ Build Revision: 8211fd36af3149c60014737eee2407abb5516974 │
+╰──────────────────────────────────────────────────────────╯
+╭───── Authentication Token ─────╮
+│ Server: https://www.example.org│
+│ Token: Oo919mXP...TdI=         │
+╰────────────────────────────────╯
+
+✓ Token saved to: .env
+
+✓ Successfully connected to Trilium v0.93.0
+```
+
+Show configured server info
+
+```
+❯ tpy info server
+```
+
+```
+Fetching server information...
+╭─ Connection Information ─╮
+│ Server: www.example.org  │
+│ Token: ********...       │
+╰──────────────────────────╯
+╭────────────────── Trilium Server Information ───────────────────╮
+│ Application          : Trilium Next Notes                       │
+│ Version              : 0.93.0                                   │
+│ Build Date           : 2025-04-17T19:25:28Z                     │
+│ Build Revision       : 8211fd36af3149c60014737eee2407abb5516974 │
+│ Database Version     : 229                                      │
+│ Sync Protocol Version: 34                                       │
+│ Data Directory       : /home/node/trilium-data                  │
+╰─────────────────────────────────────────────────────────────────╯
+```
+
+-----
+
+# Stubs, not well tested
 
 ### Search Notes
 

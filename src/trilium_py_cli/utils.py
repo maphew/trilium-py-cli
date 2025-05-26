@@ -3,9 +3,10 @@
 import os
 import click
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Any, Dict
 
 from dotenv import load_dotenv
+from trilium_py.client import ETAPI
 
 # Configuration file paths
 ENV_FILE = Path(".env")  # Local .env file
@@ -45,6 +46,44 @@ def load_environment(env_file: Optional[Path] = None, debug: bool = False) -> bo
     
     debug_print("No .env file found")
     return False
+
+
+def get_etapi(ctx: click.Context) -> ETAPI:
+    """Get an ETAPI client from the Click context.
+    
+    Args:
+        ctx: Click context object containing server and token
+        
+    Returns:
+        ETAPI: Configured ETAPI client
+        
+    Raises:
+        click.UsageError: If server or token is missing
+    """
+    server = ctx.obj.get("server")
+    token = ctx.obj.get("token")
+    debug = ctx.obj.get("debug", False)
+    
+    if not server or not token:
+        # Try to get from environment
+        server, token = ensure_config(debug=debug)
+        if not server or not token:
+            raise click.UsageError(
+                "Missing server or token. Please configure with:\n"
+                "  tpy config set --server URL --token TOKEN"
+            )
+    
+    if debug:
+        click.echo(f"[DEBUG] Creating ETAPI client for {server}", err=True)
+    
+    try:
+        return ETAPI(server, token)
+    except Exception as e:
+        if debug:
+            click.echo(f"[DEBUG] Failed to create ETAPI client: {e}", err=True)
+        raise click.UsageError(
+            "Failed to connect to Trilium. Please check your server URL and token."
+        )
 
 
 def get_config(debug: bool = False) -> Tuple[Optional[str], Optional[str]]:
