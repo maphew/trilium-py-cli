@@ -3,10 +3,18 @@
 import os
 import click
 from pathlib import Path
-from typing import Optional, Dict, Any
+import sys
+from typing import Optional, Dict, Any, Tuple
+from pathlib import Path
 
-from ..utils import ENV_FILE, load_environment
+from ..utils import ENV_FILE, load_environment, get_config
 from ..options import common_options, server_option, token_option
+from trilium_py.client import ETAPI
+
+from rich.console import Console
+from rich.panel import Panel
+
+console = Console()
 
 
 def create_or_update_env(server: Optional[str] = None, token: Optional[str] = None) -> Path:
@@ -150,3 +158,108 @@ def delete(ctx: click.Context) -> None:
             raise
         click.echo(f"Error deleting configuration: {e}", err=True)
         raise click.Abort()
+
+
+def get_token_from_server(server_url: str, password: str) -> Tuple[str, dict]:
+    """
+    Connect to Trilium server and get an ETAPI token using password.
+    
+    Args:
+        server_url: URL of the Trilium server
+        password: Password for the Trilium instance
+        
+    Returns:
+        tuple: (token, app_info)
+    """
+    try:
+        ea = ETAPI(server_url)
+        token = ea.login(password)
+        
+        if not token:
+            raise click.ClickException("Failed to authenticate with the provided password")
+        
+        app_info = ea.app_info()
+        return token, app_info
+    except Exception as e:
+        raise click.ClickException(f"Failed to get token from server: {e}")
+
+
+@config.command()
+@click.argument("password", required=False)
+@click.option(
+    "--server",
+    "server_url",
+    help="Trilium server URL (e.g., http://localhost:8080)",
+    required=True,
+)
+@click.option(
+    "--save/--no-save",
+    default=True,
+    help="Save the token to the configuration file",
+    show_default=True,
+)
+@click.pass_context
+def get_token(
+    ctx: click.Context, 
+    password: Optional[str], 
+    server_url: str, 
+    save: bool
+) -> None:
+    """Get a new ETAPI token from Trilium server.
+    
+    This command will authenticate with the Trilium server using the provided
+    password and retrieve a new ETAPI token. The token can be saved to the
+    configuration file for future use.
+    
+    Example:
+        tpy config get-token yourpassword --server http://localhost:8080
+    """
+    try:
+        # Prompt for password if not provided
+        if not password:
+            password = click.prompt("Enter your Trilium password", hide_input=True)
+            
+        # Get token from server
+        console.print(f"Connecting to Trilium server at [bold]{server_url}[/bold]...")
+        token, app_info = get_token_from_server(server_url, password)
+        
+        # Display app info
+        console.print(Panel.fit(
+            f"[bold]Trilium:[/bold] {app_info.get('appVersion', 'Unknown')}\n"
+            f"[bold]Build Date:[/bold] {app_info.get('buildDate', 'Unknown')}\n"
+            f"[bold]Build Revision:[/bold] {app_info.get('buildRevision', 'Unknown')}",
+            title="Server Information"
+        ))
+        
+        # Display token info
+        console.print(Panel.fit(
+            f"[bold]Server:[/bold] {server_url}\n"
+            f"[bold]Token:[/bold] {token[:8]}...{token[-4:] if len(token) > 12 else ''}",
+            title="Authentication Token",
+            border_style="green"
+        ))
+        
+        # Save token if requested
+        if save:
+            try:
+                env_path = create_or_update_env(server=server_url, token=token)
+                console.print(f"\n[green]✓ Token saved to: {env_path}[/green]")
+                
+                # Test the token
+                try:
+                    ea = ETAPI(server_url, token)
+                    user_info = ea.app_info()
+                    console.print(f"\n[green]✓ Successfully connected to {user_info.get('appName', 'Trilium')} v{user_info.get('appVersion', '')}[/green]")
+                except Exception as e:
+                    console.print(f"[yellow]Warning: Could not verify token: {e}[/yellow]")
+                    
+            except Exception as e:
+                console.print(f"[red]Error saving token: {e}[/red]")
+                if ctx.obj.get('debug', False):
+                    raise
+                return 1
+    except Exception as e:
+        console.print(f"[red]Error: {e}[/red]")
+        if ctx.obj.get('debug', False):
+            raise
+        return 1
