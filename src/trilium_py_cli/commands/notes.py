@@ -54,18 +54,18 @@ def search(ctx: click.Context, query: str) -> None:
         ea = get_etapi(ctx)
         click.echo(f"Searching for: {click.style(query, fg='cyan')}")
         
-        # Get search results
-        response = ea.search_note(query)
+        # Get search results using the direct query
+        results = ea.search_note(query)
         
         # Extract notes from the response
-        if isinstance(response, dict) and 'results' in response:
-            notes = response['results']
-        elif isinstance(response, list):
-            notes = response
+        if isinstance(results, dict) and 'results' in results:
+            notes = results['results']
+        elif isinstance(results, list):
+            notes = results
         else:
             click.echo("Error: Unexpected response format from server")
             if click.confirm('Show raw response?', default=False):
-                click.echo(f"Raw response: {response}")
+                click.echo(f"Raw response: {results}")
             return
             
         if not notes:
@@ -153,6 +153,10 @@ def create(
         # Create a code note
         tpy notes create "My Script" --type code --mime text/x-python --parent-id root --content @script.py
     """
+    
+    print("forcing dry run. Create is not safe yet.")
+    dry_run = True
+
     try:
         # Handle file content if content starts with @
         if content.startswith('@'):
@@ -185,7 +189,7 @@ def create(
         ea = get_etapi(ctx)
         note = ea.create_note(
             title=title,
-            parent_note_id=parent_id,
+            parentNoteId=parent_id,
             type=note_type,
             mime=mime,
             content=content,
