@@ -67,19 +67,19 @@ Show configured server info
 
 ```
 Fetching server information...
-╭─ Connection Information ─╮
-│ Server: www.example.org  │
-│ Token: ********...       │
-╰──────────────────────────╯
-╭────────────────── Trilium Server Information ───────────────────╮
-│ Application          : Trilium Next Notes                       │
-│ Version              : 0.93.0                                   │
-│ Build Date           : 2025-04-17T19:25:28Z                     │
-│ Build Revision       : 8211fd36af3149c60014737eee2407abb5516974 │
-│ Database Version     : 229                                      │
-│ Sync Protocol Version: 34                                       │
-│ Data Directory       : /home/node/trilium-data                  │
-╰─────────────────────────────────────────────────────────────────╯
+╭──────────────────── Trilium Server Information ────────────────────╮
+│ Server                  : https://www.example.org                  │
+│ Token                   : OYE=..............nLNz                   │
+│ App Version             : 0.93.0                                   │
+│ Db Version              : 229                                      │
+│ Node Version            : v22.14.0                                 │
+│ Sync Version            : 34                                       │
+│ Build Date              : 2025-04-17T19:25:28Z                     │
+│ Build Revision          : 8211fd36af3149c60014737eee2407abb5516974 │
+│ Data Directory          : /home/node/trilium-data                  │
+│ Clipper Protocol Version: 1.0                                      │
+│ Utc Date Time           : 2025-04-27T01:06:03.891Z                 │
+╰────────────────────────────────────────────────────────────────────╯
 ```
 
 -----
