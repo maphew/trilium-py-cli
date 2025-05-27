@@ -34,19 +34,21 @@ def server(ctx: click.Context) -> None:
         server_url = ea.server_url
         token = ea.token
 
-        # Convert camelCase to Space Separated Words and format each line
+        # keys are in camelCase, convert to Space Separated Words and format each line
         def format_key(key: str) -> str:
-            # Add space before capital letters, then capitalize first letter of each word
+            # Split words on capitals, then capitalize first letter of each word
             import re
             words = re.sub('([A-Z][a-z]+)', r' \1', re.sub('([A-Z]+)', r' \1', key)).split()
             return ' '.join(word.capitalize() for word in words)
             
         # Build formatted lines with consistent alignment
         formatted_lines = []
-        # Connection info, be nice to match the app info left justification
+        
+        # Connection info
         formatted_lines.append(f"[bold]Server[/]{''.ljust(18)}: {server_url}")
         formatted_lines.append(f"[bold]Token [/]{''.ljust(18)}: {token[-4:]}{'.'*(len(server_url)-8)}{token[:4]}")
-        # formatted_lines.append("\n")
+        
+        # App info
         for key, value in app_info.items():
             # Format the key with color and alignment
             formatted_key = f"[cyan]{format_key(key).ljust(24)}[/]"
