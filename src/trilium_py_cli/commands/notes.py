@@ -53,21 +53,44 @@ def search(ctx: click.Context, query: str) -> None:
     try:
         ea = get_etapi(ctx)
         click.echo(f"Searching for: {click.style(query, fg='cyan')}")
-        results = ea.search_note(query)
-        if not results:
+        
+        # Get search results
+        response = ea.search_note(query)
+        
+        # Extract notes from the response
+        if isinstance(response, dict) and 'results' in response:
+            notes = response['results']
+        elif isinstance(response, list):
+            notes = response
+        else:
+            click.echo("Error: Unexpected response format from server")
+            if click.confirm('Show raw response?', default=False):
+                click.echo(f"Raw response: {response}")
+            return
+            
+        if not notes:
             click.echo("No matching notes found.")
             return
             
-        click.echo(f"\nFound {click.style(str(len(results)), fg='green')} notes:")
-        for i, note in enumerate(results, 1):
+        click.echo(f"\nFound {click.style(str(len(notes)), fg='green')} notes:")
+        
+        for i, note in enumerate(notes, 1):
+            if not isinstance(note, dict):
+                click.echo(f"  {i}. [red]Invalid note format: {note}[/]")
+                continue
+                
+            # Get note details with safe defaults
             note_id = note.get('noteId', 'N/A')
             title = note.get('title', 'Untitled')
+            
+            # Display note
             click.echo(f"  {i}. {click.style(title, fg='yellow')} ({note_id})")
             
-            # Show a preview of the content if available
-            if 'content' in note and note['content']:
-                preview = note['content'][:100].replace('\n', ' ')
-                if len(note['content']) > 100:
+            # Show content preview if available
+            content = note.get('content')
+            if content and isinstance(content, str):
+                preview = content[:100].replace('\n', ' ')
+                if len(content) > 100:
                     preview += "..."
                 click.echo(f"     {preview}")
                 
