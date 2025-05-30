@@ -2,7 +2,7 @@
 
 Trilium-py CLI - Command line interface for [trilium-py][trilium-py], providing easy access to Trilium Notes from your terminal.
 
-Status: alpha
+Status: **alpha**, subject to exploring the wilds change. Hmmm, what would _this_ do? ...oh. Did I back up? I did, right?
 
 ## Installation
 
